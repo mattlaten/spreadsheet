@@ -17,10 +17,6 @@ public class FileIO {
 				cells[i] = input.readLine().split(",", -1);
 				for (int j = 0; j < 9; j++) {
 					System.out.print(cells[i][j] + ":");
-					if (cells[i][j] == null) {
-						System.out.println("HERP");
-						cells[i][j] = "";
-					}
 				}
 				System.out.println();
 			}
