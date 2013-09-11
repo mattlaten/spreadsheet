@@ -8,12 +8,14 @@ public class Cell {
 	double value;
 	boolean empty;
 	boolean processed;
+	boolean visited;
 	Set<String> dependants;
 	
 	public Cell() {
 		expression = "";
 		empty = false;
 		processed = false;
+		visited = false;
 		dependants = new HashSet<String>();
 	}
 	

@@ -40,6 +40,10 @@ public class Spreadsheet {
 	}
 	
 	public String flatten(int row, int column) throws Exception {
+		System.out.println("Herp");
+		if (cells[row][column].visited) {
+			throw new Exception("Circular reference containing cell " + rowColToCell(row,column));
+		}
 		String expression = cells[row][column].expression;
 		String result;
 		if (expression.startsWith("=") && !cells[row][column].processed) {
@@ -48,9 +52,11 @@ public class Spreadsheet {
 			String[] refs = expression.split("[+-/*]+");
 			for (String string : refs) {
 				if (Pattern.matches("[A-Z][\\d]+", string)) {
+					cells[row][column].visited = true;
 					int rc[] = cellToRowCol(string);
 					cells[rc[0]][rc[1]].dependants.add(string);
 					result = result.replaceAll(string, " ( " + flatten(rc[0], rc[1]) + " ) ");
+					cells[row][column].visited = false;
 				} else {
 					if (Parser.isDouble(string)) {
 						result = result.replaceAll(string, " " + string + " ");
@@ -110,6 +116,6 @@ public class Spreadsheet {
 	}
 	
 	public static String rowColToCell (int row, int column) {
-		return (char) (row+'A')+""+column;
+		return (char) (row+'A')+""+(column+1);
 	}
 }
