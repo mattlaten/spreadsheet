@@ -7,7 +7,7 @@ public class Spreadsheet {
 	int rows = 26;
 	int columns = 9;
 	
-	public Spreadsheet(String [][] spreadsheetCells) {
+	public Spreadsheet(String [][] spreadsheetCells) throws Exception {
 		cells = new Cell[rows][columns];
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++) {
@@ -30,6 +30,7 @@ public class Spreadsheet {
 			}
 		}
 		
+		//flatten all expressions and
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++) {
 				if (cells[i][j].expression.startsWith("=")) {
@@ -40,7 +41,7 @@ public class Spreadsheet {
 		}
 	}
 	
-	public String flatten(int row, int column) {
+	public String flatten(int row, int column) throws Exception {
 		String expression = cells[row][column].expression;
 		String result;
 		if (expression.startsWith("=")) {
@@ -55,7 +56,11 @@ public class Spreadsheet {
 					int c = Integer.parseInt(string.substring(1))-1;
 					result = result.replaceAll(string, " ( " + flatten(r,c) + " ) " );
 				} else {
-					result = result.replaceAll(string, " " + string + " ");
+					if (Parser.isDouble(string)) {
+						result = result.replaceAll(string, " " + string + " ");
+					} else {
+						throw new Exception(String.format("Invalid Expression in cell %s: \"%s\"", rowColToCell(row,column), string));
+					}
 				}
 			}
 		} else {
@@ -66,11 +71,15 @@ public class Spreadsheet {
 	}
 	
 	public String getValue(int row, int column) {
-		if (cells[row][column].isEmpty()) {
-			return "";
-		} else {
+		if (!cells[row][column].isEmpty()) {
 			return "" + cells[row][column].value;
+		} else {
+			return "";
 		}
+	}
+	
+	public String getExpression(int row, int column) {
+		return "" + cells[row][column].expression;
 	}
 	
 	public void setValue(int row, int column, String value) {
@@ -90,7 +99,7 @@ public class Spreadsheet {
 		for (int i = 0; i < rows; i++) {
 			result += String.format("%s |",(char) ('A' + i));
 			for (int j = 0; j < columns; j++) {
-				result += String.format("%1$5s |", cells[i][j].value);
+				result += String.format("%1$5s |", getValue(i,j));
 			}
 			result += "\n---";
 			for (int j = 0; j < columns; j++) {
@@ -99,5 +108,15 @@ public class Spreadsheet {
 			result += "\n";
 		}
 		return result;
+	}
+	
+	public static int [] cellToRowCol(String cell) {
+		int r = cell.charAt(0) - 'A';
+		int c = Integer.parseInt(cell.substring(1))-1;
+		return new int [] {r,c};
+	}
+	
+	public static String rowColToCell (int row, int column) {
+		return (char) (row+'A')+""+column;
 	}
 }
