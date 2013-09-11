@@ -19,6 +19,7 @@ public class Main {
 				System.out.println("B) Set a cell value");
 				System.out.println("C) Print the spreadsheet");
 				System.out.println("X) Exit");
+				System.out.println("Your choice: ");				
 				char choice = input.next().toUpperCase().charAt(0);
 				String cell;
 				int rc [];
@@ -28,6 +29,7 @@ public class Main {
 					cell = input.next();
 					rc = Spreadsheet.cellToRowCol(cell);
 					System.out.println(String.format("Cell value in %s is %s", cell, spreadsheet.getValue(rc[0], rc[1])));
+					System.out.println("");
 					break;
 				case 'B':
 					System.out.println("Please enter cell location:");
@@ -36,15 +38,19 @@ public class Main {
 					System.out.println("Please enter value:");
 					String value = input.next();
 					spreadsheet.setValue(rc[0], rc[1], value);
+					System.out.println(String.format("Value in cell %s set to %s", cell, value));
 					break;
 				case 'C':
 					System.out.println(spreadsheet);
+					System.out.println("");
 					break;
 				case 'X':
-					running = false;
+					input.close();
+					System.exit(0);
 					break;
 				default:
 					System.out.println("Invalid choice: " + choice);
+					System.out.println("");
 					break;
 				}
 			}

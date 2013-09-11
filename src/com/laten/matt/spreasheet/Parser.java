@@ -6,84 +6,57 @@ import java.util.Map;
 import java.util.Stack;
 
 public class Parser {
+	private Map<String, Integer> operators = new HashMap<String, Integer>();
 	
-	// Associativity constants for operators
-		private static final int LEFT_ASSOC = 0;
-		private static final int RIGHT_ASSOC = 1;
-
-		// Supported operators
-		private static final Map<String, int[]> OPERATORS = new HashMap<String, int[]>();
-		static {
-			OPERATORS.put("+", new int[] { 0, LEFT_ASSOC });
-			OPERATORS.put("-", new int[] { 0, LEFT_ASSOC });
-			OPERATORS.put("*", new int[] { 5, LEFT_ASSOC });
-			OPERATORS.put("/", new int[] { 5, LEFT_ASSOC });
-		}
-	
-	private static boolean isOperator(String token) {
-		return OPERATORS.containsKey(token);
+	public Parser() {
+		operators.put("+", 0);
+		operators.put("-", 0);
+		operators.put("*", 5);
+		operators.put("/", 5);
 	}
 	
-	private static boolean isAssociative(String token, int type) {
-		if (!isOperator(token)) {
-			throw new IllegalArgumentException("Invalid token: " + token);
-		}
-		if (OPERATORS.get(token)[1] == type) {
-			return true;
-		}
-		return false;
+	private boolean isOperator(String token) {
+		return operators.containsKey(token);
 	}
 
-	private static final int cmpPrecedence(String token1, String token2) {
+	private int compare(String token1, String token2) {
 		if (!isOperator(token1) || !isOperator(token2)) {
-			throw new IllegalArgumentException("Invalied tokens: " + token1
-					+ " " + token2);
+			throw new IllegalArgumentException("Invalied tokens: " + token1 + " " + token2);
 		}
-		return OPERATORS.get(token1)[0] - OPERATORS.get(token2)[0];
-	}
-		
-	public Parser () {
-		
+		return operators.get(token1) - operators.get(token2);
 	}
 	
-	public static String [] parse(String expression) {
+	//Shunting yard algorithm
+	public String [] convert(String expression) {
 		ArrayList<String> out = new ArrayList<String>();
 		Stack<String> stack = new Stack<String>();
 		String [] tokens = expression.split("[ ]+");
-		// For all the input tokens [S1] read the next token [S2]
 		for (String token : tokens) {
 			if (token.equals("")) {
 				continue;
 			}
 			if (isOperator(token)) {
-				// If token is an operator (x) [S3]
 				while (!stack.empty() && isOperator(stack.peek())) {
-					// [S4]
-					if ((isAssociative(token, LEFT_ASSOC) && cmpPrecedence(
-							token, stack.peek()) <= 0)
-							|| (isAssociative(token, RIGHT_ASSOC) && cmpPrecedence(
-									token, stack.peek()) < 0)) {
-						out.add(stack.pop()); 	// [S5] [S6]
+					if (compare(token, stack.peek()) <= 0) {
+						out.add(stack.pop());
 						continue;
 					}
 					break;
 				}
-				// Push the new operator on the stack [S7]
 				stack.push(token);
 			} else if (token.equals("(")) {
-				stack.push(token); 	// [S8]
+				stack.push(token); 
 			} else if (token.equals(")")) {
-				// [S9]
 				while (!stack.empty() && !stack.peek().equals("(")) {
-					out.add(stack.pop()); // [S10]
+					out.add(stack.pop()); 
 				}
-				stack.pop(); // [S11]
+				stack.pop();
 			} else {
-				out.add(token); // [S12]
+				out.add(token); 
 			}
 		}
 		while (!stack.empty()) {
-			out.add(stack.pop()); // [S13]
+			out.add(stack.pop());
 		}
 		String[] output = new String[out.size()];
 		return out.toArray(output);

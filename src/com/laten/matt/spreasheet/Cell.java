@@ -7,13 +7,13 @@ public class Cell {
 	String expression;
 	double value;
 	boolean empty;
-	boolean visited;
+	boolean processed;
 	Set<String> dependants;
 	
 	public Cell() {
 		expression = "";
 		empty = false;
-		visited = false;
+		processed = false;
 		dependants = new HashSet<String>();
 	}
 	

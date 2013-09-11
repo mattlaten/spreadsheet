@@ -6,9 +6,11 @@ public class Spreadsheet {
 	Cell cells [][];
 	int rows = 26;
 	int columns = 9;
+	Parser parser;
 	
 	public Spreadsheet(String [][] spreadsheetCells) throws Exception {
 		cells = new Cell[rows][columns];
+		parser = new Parser();
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++) {
 				cells[i][j] = new Cell();
@@ -16,17 +18,14 @@ public class Spreadsheet {
 				if (cells[i][j].expression.equals("")) {
 					cells[i][j].empty = true;
 				} else {
-					if (cells[i][j].expression.startsWith("=")) {
-						
-					} else {
+					if (!cells[i][j].expression.startsWith("=")) {
 						try {
 							cells[i][j].value = Double.parseDouble(cells[i][j].expression);
 						} catch (NumberFormatException e) {
 							System.out.println(e.getMessage());
 						}
 					}
-				}
-					
+				}		
 			}
 		}
 		
@@ -34,8 +33,7 @@ public class Spreadsheet {
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++) {
 				if (cells[i][j].expression.startsWith("=")) {
-					cells[i][j].expression = flatten(i, j);
-					cells[i][j].value = Parser.evaluate(Parser.parse(cells[i][j].expression));
+					cells[i][j].value = parser.evaluate(parser.convert(flatten(i, j)));
 				}
 			}
 		}
@@ -44,25 +42,24 @@ public class Spreadsheet {
 	public String flatten(int row, int column) throws Exception {
 		String expression = cells[row][column].expression;
 		String result;
-		if (expression.startsWith("=")) {
-			//process it
+		if (expression.startsWith("=") && !cells[row][column].processed) {
 			expression = expression.substring(1);
 			result = expression;
-			String [] refs = expression.split("[+-/*]+");
+			String[] refs = expression.split("[+-/*]+");
 			for (String string : refs) {
-				System.out.println(string);
 				if (Pattern.matches("[A-Z][\\d]+", string)) {
-					int r = string.charAt(0) - 'A';
-					int c = Integer.parseInt(string.substring(1))-1;
-					result = result.replaceAll(string, " ( " + flatten(r,c) + " ) " );
+					int rc[] = cellToRowCol(string);
+					cells[rc[0]][rc[1]].dependants.add(string);
+					result = result.replaceAll(string, " ( " + flatten(rc[0], rc[1]) + " ) ");
 				} else {
 					if (Parser.isDouble(string)) {
 						result = result.replaceAll(string, " " + string + " ");
 					} else {
-						throw new Exception(String.format("Invalid Expression in cell %s: \"%s\"", rowColToCell(row,column), string));
+						throw new Exception(String.format("Invalid Expression in cell %s: \"%s\"", rowColToCell(row, column), string));
 					}
 				}
 			}
+			cells[row][column].processed = true;
 		} else {
 			result = " " + cells[row][column].value + " ";
 		}
@@ -70,12 +67,8 @@ public class Spreadsheet {
 		
 	}
 	
-	public String getValue(int row, int column) {
-		if (!cells[row][column].isEmpty()) {
-			return "" + cells[row][column].value;
-		} else {
-			return "";
-		}
+	public double getValue(int row, int column) {
+		return cells[row][column].value;
 	}
 	
 	public String getExpression(int row, int column) {
