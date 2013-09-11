@@ -9,14 +9,14 @@ public class Cell {
 	boolean empty;
 	boolean processed;
 	boolean visited;
-	Set<String> dependants;
+	Set<String> dependents;
 	
 	public Cell() {
 		expression = "";
 		empty = false;
 		processed = false;
 		visited = false;
-		dependants = new HashSet<String>();
+		dependents = new HashSet<String>();
 	}
 	
 	public boolean isEmpty() {

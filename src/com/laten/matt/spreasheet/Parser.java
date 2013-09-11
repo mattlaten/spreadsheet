@@ -63,7 +63,7 @@ public class Parser {
 	}
 	
 	//parse expression in Reverse Polish Notation
-	public static double evaluate(String [] tokens) {
+	public double evaluate(String [] tokens) {
 		Stack<Double> stack = new Stack<Double>();
 		for (String token : tokens) {
 			if (isDouble(token)) {

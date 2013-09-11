@@ -1,5 +1,6 @@
 package com.laten.matt.spreasheet;
 
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class Spreadsheet {
@@ -29,7 +30,7 @@ public class Spreadsheet {
 			}
 		}
 		
-		//flatten all expressions and
+		//flatten all expressions and evaluate them
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++) {
 				if (cells[i][j].expression.startsWith("=")) {
@@ -40,7 +41,6 @@ public class Spreadsheet {
 	}
 	
 	public String flatten(int row, int column) throws Exception {
-		System.out.println("Herp");
 		if (cells[row][column].visited) {
 			throw new Exception("Circular reference containing cell " + rowColToCell(row,column));
 		}
@@ -54,7 +54,7 @@ public class Spreadsheet {
 				if (Pattern.matches("[A-Z][\\d]+", string)) {
 					cells[row][column].visited = true;
 					int rc[] = cellToRowCol(string);
-					cells[rc[0]][rc[1]].dependants.add(string);
+					cells[rc[0]][rc[1]].dependents.add(string);
 					result = result.replaceAll(string, " ( " + flatten(rc[0], rc[1]) + " ) ");
 					cells[row][column].visited = false;
 				} else {
@@ -70,7 +70,41 @@ public class Spreadsheet {
 			result = " " + cells[row][column].value + " ";
 		}
 		return result;
-		
+	}
+	
+	public void removeDeps (int row, int column) {
+		String expression = cells[row][column].expression;
+		String[] refs = expression.split("[+-/*]+");
+		for (String string : refs) {
+			if (Pattern.matches("[A-Z][\\d]+", string)) {
+				int rc[] = cellToRowCol(string);
+				cells[rc[0]][rc[1]].dependents.remove(string);
+			}
+		}
+	}
+	
+	public boolean processUnprocessed (int row, int column) throws Exception {
+		ArrayList<String> toProcess =  new ArrayList<String>();
+		for (String string : cells[row][column].dependents) {
+			int rc [] = cellToRowCol(string);
+			cells[rc[0]][rc[1]].processed = false;
+		}
+		for (String string : cells[row][column].dependents) {
+			int rc [] = cellToRowCol(string);
+			System.out.print(string);
+			if (processUnprocessed(rc[0],rc[1])) {
+				toProcess.add(string);
+			}
+		}
+		for (String proc : toProcess) {
+			int rc [] = cellToRowCol(proc);
+			flatten(rc[0],rc[1]);
+		}
+		if (cells[row][column].dependents.isEmpty()) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 	
 	public double getValue(int row, int column) {
@@ -81,8 +115,16 @@ public class Spreadsheet {
 		return "" + cells[row][column].expression;
 	}
 	
-	public void setValue(int row, int column, String value) {
+	public void setValue(int row, int column, String value) throws Exception {
+		removeDeps(row,column);
 		cells[row][column].expression = value;
+		cells[row][column].processed = false;
+		if (!Parser.isDouble(value)) {
+			cells[row][column].value = parser.evaluate(parser.convert(flatten(row, column)));
+		} else {
+			cells[row][column].value = Double.parseDouble(value);
+		}
+		processUnprocessed(row,column);
 	}
 	
 	public String toString() {

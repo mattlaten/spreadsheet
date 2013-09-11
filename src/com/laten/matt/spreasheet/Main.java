@@ -26,17 +26,17 @@ public class Main {
 				switch (choice) {
 				case 'A':
 					System.out.println("Please enter cell location:");
-					cell = input.next();
+					cell = input.next().toUpperCase();
 					rc = Spreadsheet.cellToRowCol(cell);
 					System.out.println(String.format("Cell value in %s is %s", cell, spreadsheet.getValue(rc[0], rc[1])));
 					System.out.println("");
 					break;
 				case 'B':
 					System.out.println("Please enter cell location:");
-					cell = input.next();
+					cell = input.next().toUpperCase();
 					rc = Spreadsheet.cellToRowCol(cell);
 					System.out.println("Please enter value:");
-					String value = input.next();
+					String value = input.next().toUpperCase();
 					spreadsheet.setValue(rc[0], rc[1], value);
 					System.out.println(String.format("Value in cell %s set to %s", cell, value));
 					break;
