@@ -54,7 +54,7 @@ public class Spreadsheet {
 				if (Pattern.matches("[A-Z][\\d]+", string)) {
 					cells[row][column].visited = true;
 					int rc[] = cellToRowCol(string);
-					cells[rc[0]][rc[1]].dependents.add(string);
+					cells[rc[0]][rc[1]].dependents.add(rowColToCell(row, column));
 					result = result.replaceAll(string, " ( " + flatten(rc[0], rc[1]) + " ) ");
 					cells[row][column].visited = false;
 				} else {
@@ -69,6 +69,7 @@ public class Spreadsheet {
 		} else {
 			result = " " + cells[row][column].value + " ";
 		}
+		cells[row][column].value = parser.evaluate(parser.convert(result));
 		return result;
 	}
 	
@@ -91,7 +92,6 @@ public class Spreadsheet {
 		}
 		for (String string : cells[row][column].dependents) {
 			int rc [] = cellToRowCol(string);
-			System.out.print(string);
 			if (processUnprocessed(rc[0],rc[1])) {
 				toProcess.add(string);
 			}
